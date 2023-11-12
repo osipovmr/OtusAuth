@@ -1,0 +1,2 @@
+docker image build --platform linux/amd64 -t osipovmr/otus_homework:auth .
+docker push osipovmr/otus_homework:auth

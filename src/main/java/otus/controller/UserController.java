@@ -7,7 +7,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import otus.model.Response;
 import otus.model.dto.LoginRequest;
+import otus.model.dto.UserAuthResponseDto;
 import otus.model.dto.UserDto;
 import otus.model.entity.User;
 import otus.service.UserService;
@@ -37,16 +39,16 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<Response> login(@RequestBody LoginRequest loginRequest) {
         User user = userService.findUserByLoginAndPassword(loginRequest.getLogin(), loginRequest.getPassword());
         UUID sessionUUID = createSession(user);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Set-Cookie", "sessionUUID=" + sessionUUID);
-        return new ResponseEntity<>("LOGIN SUCCESSFULLY", headers, HttpStatus.OK);
+        return new ResponseEntity<>(Response.builder().status("ok").build(), headers, HttpStatus.OK);
     }
 
-    @PostMapping("/auth")
-    public ResponseEntity<String> auth(@CookieValue(name = "sessionUUID", required = false) UUID sessionUUID) {
+    @GetMapping("/auth")
+    public ResponseEntity<?> auth(@CookieValue(name = "sessionUUID", required = false) UUID sessionUUID) {
         if (sessionUUID == null) {
             return new ResponseEntity<>("AUTHORIZATION IS REQUIRED", HttpStatus.UNAUTHORIZED);
         }
@@ -55,7 +57,14 @@ public class UserController {
             return new ResponseEntity<>("AUTHORIZATION IS REQUIRED", HttpStatus.UNAUTHORIZED);
         } else {
             HttpHeaders headers = getHttpHeaders(user);
-            return new ResponseEntity<>("AUTH SUCCESSFULLY", headers, HttpStatus.OK);
+            UserAuthResponseDto response = UserAuthResponseDto.builder()
+                    .id(user.getId())
+                    .login(user.getLogin())
+                    .email(user.getEmail())
+                    .firstName(user.getFirstName())
+                    .lastName(user.getLastName())
+                    .build();
+            return new ResponseEntity<>(response, headers, HttpStatus.OK);
         }
     }
 
@@ -90,7 +99,7 @@ public class UserController {
         headers.add("X-Last-Name", user.getLastName());
         return headers;
     }
-    
+
     private UUID createSession(User user) {
         UUID sessionUUID = UUID.randomUUID();
         sessions.put(sessionUUID, user);
