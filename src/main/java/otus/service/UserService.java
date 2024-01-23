@@ -11,6 +11,7 @@ import otus.repository.UserRepository;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -24,18 +25,18 @@ public class UserService {
         return repository.findAll();
     }
 
-    public Integer createUser(UserDto dto) throws Exception {
+    public UUID createUser(UserDto dto) throws Exception {
         User existing = findUserByLogin(dto.getLogin());
         if (Objects.nonNull(existing)) {
             throw new Exception(String.format("User with login %s already exists", dto.getLogin()));
         }
         User user = mapper.map(dto, User.class);
         User savedUser = repository.save(user);
-        log.info("Created new user id: {}, username: {}, password: {}",
-                savedUser.getId(),
+        log.info("Created new user uuid: {}, username: {}, password: {}",
+                savedUser.getUserUUID(),
                 savedUser.getLogin(),
                 savedUser.getPassword());
-        return savedUser.getId();
+        return savedUser.getUserUUID();
     }
 
     public void deleteUserById(int userId) {

@@ -29,7 +29,7 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody UserDto dto) {
-        Integer newUserId = null;
+        UUID newUserId = null;
         try {
             newUserId = userService.createUser(dto);
         } catch (Exception e) {
@@ -58,7 +58,7 @@ public class UserController {
         } else {
             HttpHeaders headers = getHttpHeaders(user);
             UserAuthResponseDto response = UserAuthResponseDto.builder()
-                    .id(user.getId())
+                    .userUUID(user.getUserUUID())
                     .login(user.getLogin())
                     .email(user.getEmail())
                     .firstName(user.getFirstName())
@@ -92,7 +92,7 @@ public class UserController {
 
     private HttpHeaders getHttpHeaders(User user) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("X-UserId", user.getId().toString());
+        headers.add("X-UserId", user.getUserUUID().toString());
         headers.add("X-User", user.getLogin());
         headers.add("X-Email", user.getEmail());
         headers.add("X-First-Name", user.getFirstName());
