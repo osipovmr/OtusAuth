@@ -1,13 +1,12 @@
 package otus.controller;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
-import otus.model.Response;
 import otus.model.dto.LoginRequest;
 import otus.model.dto.UserAuthResponseDto;
 import otus.model.dto.UserDto;
@@ -24,14 +23,16 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
-
+    private final KafkaTemplate<String, String> kafkaTemplate;
     private final HashMap<UUID, User> sessions = new HashMap<>();
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody UserDto dto) {
-        UUID newUserId = null;
+    public ResponseEntity<String> register(@RequestBody UserDto dto) {
+        UUID newUserId;
         try {
             newUserId = userService.createUser(dto);
+            kafkaTemplate.send("newUser", String.valueOf(newUserId));
+            log.info("Отправлен запрос на создание счета для нового пользователя {}.", newUserId);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getLocalizedMessage(), HttpStatus.CONFLICT);
         }
@@ -39,12 +40,12 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Response> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         User user = userService.findUserByLoginAndPassword(loginRequest.getLogin(), loginRequest.getPassword());
         UUID sessionUUID = createSession(user);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Set-Cookie", "sessionUUID=" + sessionUUID);
-        return new ResponseEntity<>(Response.builder().status("ok").build(), headers, HttpStatus.OK);
+        return new ResponseEntity<>(headers, HttpStatus.OK);
     }
 
     @GetMapping("/auth")
