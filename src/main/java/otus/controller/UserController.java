@@ -65,6 +65,7 @@ public class UserController {
                     .firstName(user.getFirstName())
                     .lastName(user.getLastName())
                     .build();
+            log.info("Аутентификация для пользователя {}.", user.getUserUUID());
             return new ResponseEntity<>(response, headers, HttpStatus.OK);
         }
     }
