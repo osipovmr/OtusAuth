@@ -89,6 +89,7 @@ public class UserController {
 
     @GetMapping("/signin")
     public ResponseEntity<String> signin() {
+        log.info("Совершен не авторизованный запрос.");
         return new ResponseEntity<>("Please go to login and provide Login/Password", HttpStatus.UNAUTHORIZED);
     }
 
