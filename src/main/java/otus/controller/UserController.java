@@ -72,9 +72,10 @@ public class UserController {
 
     @RequestMapping("/logout")
     public ResponseEntity<String> logout(@CookieValue(name = "sessionUUID") UUID sessionUUID) {
-        sessions.remove(sessionUUID);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Set-Cookie", "sessionUUID=");
+        log.info("Пользователь {} вышел из системы.", sessions.get(sessionUUID).getUserUUID());
+        sessions.remove(sessionUUID);
         return new ResponseEntity<>("LOGOUT SUCCESSFULLY", headers, HttpStatus.OK);
     }
 
