@@ -14,6 +14,7 @@ import otus.model.entity.User;
 import otus.service.UserService;
 
 import java.util.HashMap;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -41,7 +42,14 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        User user = userService.findUserByLoginAndPassword(loginRequest.getLogin(), loginRequest.getPassword());
+        User user;
+        try {
+            user = userService.findUserByLoginAndPassword(loginRequest.getLogin(), loginRequest.getPassword());
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>(
+                    String.format("User with login %s does not exist. Please go to '/register' page", loginRequest.getLogin()),
+                    HttpStatus.UNAUTHORIZED);
+        }
         UUID sessionUUID = createSession(user);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Set-Cookie", "sessionUUID=" + sessionUUID);
