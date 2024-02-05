@@ -51,10 +51,12 @@ public class UserController {
     @GetMapping("/auth")
     public ResponseEntity<?> auth(@CookieValue(name = "sessionUUID", required = false) UUID sessionUUID) {
         if (sessionUUID == null) {
+            log.error("sessionUUID == null");
             return new ResponseEntity<>("AUTHORIZATION IS REQUIRED", HttpStatus.UNAUTHORIZED);
         }
         User user = sessions.get(sessionUUID);
         if (Objects.isNull(user)) {
+            log.error("No user for sessoinUUID = {}", sessionUUID);
             return new ResponseEntity<>("AUTHORIZATION IS REQUIRED", HttpStatus.UNAUTHORIZED);
         } else {
             HttpHeaders headers = getHttpHeaders(user);
@@ -91,7 +93,7 @@ public class UserController {
     @GetMapping("/signin")
     public ResponseEntity<String> signin() {
         log.info("Совершен не авторизованный запрос.");
-        return new ResponseEntity<>("Please go to login and provide Login/Password", HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>("Please go to '/login' and provide Login/Password", HttpStatus.UNAUTHORIZED);
     }
 
     private HttpHeaders getHttpHeaders(User user) {
