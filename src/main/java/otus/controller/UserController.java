@@ -29,6 +29,7 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody UserDto dto) {
+        log.info("Запрос на регистрацию.");
         UUID newUserId;
         try {
             newUserId = userService.createUser(dto);
